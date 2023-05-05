@@ -54,6 +54,7 @@ class _ToDOListPageState extends State<ToDOListPage> {
                   onSelected: (value) {
                     if (value == 'edit') {
                       // Open edit page
+                      navigateToEditPage(item);
                     } else if (value == 'delete') {
                       // Delete and remove the item
                       deleteById(id);
@@ -87,11 +88,27 @@ class _ToDOListPageState extends State<ToDOListPage> {
   }
 
   //Navigate to addPage
-  void navigateToAddPage() {
+  Future<void> navigateToAddPage() async{
     final route = MaterialPageRoute(
       builder: (context) => const AddToDo(),
     );
-    Navigator.push(context, route);
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    fetchToDo();
+  }
+
+  //Navigate to editPage
+  Future <void> navigateToEditPage(Map item) async{
+    final route = MaterialPageRoute(
+      builder: (context) =>  AddToDo(todo: item),
+    );
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    fetchToDo();
   }
 
   //..
@@ -105,12 +122,18 @@ class _ToDOListPageState extends State<ToDOListPage> {
     if (response.statusCode == 200) {
        
        // Remove the item from List
+       final filtered = items.where((element) => element['_id'] != id).toList();
+
+       setState(() {
+         items = filtered;
+       });
 
 
     } else {
 
 
       // Show error
+      showErrorMessage('Delete Failed!');
     }
 
 
@@ -138,5 +161,19 @@ class _ToDOListPageState extends State<ToDOListPage> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  //! SnacBar -> Failure
+  void showErrorMessage(String message) {
+    final snackBar = SnackBar(
+      content: Text(
+        message,
+        style: const TextStyle(
+            color: Colors.white, fontSize: 17, fontWeight: FontWeight.w500),
+      ),
+      duration: const Duration(seconds: 5),
+      backgroundColor: Colors.red,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }
