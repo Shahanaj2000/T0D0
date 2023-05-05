@@ -3,6 +3,8 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:todorest/services/todo_services.dart';
+import 'package:todorest/utils/snacBarHelper.dart';
 
 class AddToDo extends StatefulWidget {
   final Map? todo;
@@ -85,37 +87,29 @@ class _AddToDoState extends State<AddToDo> {
   Future<void> submitData() async {
     // Get the data from form
 
-    final title = titleController.text;
-    final description = descriptionController.text;
-
-    final body = {
-      "title": title,
-      "description": description,
-      "is_completed": false
-    };
+    
 
     // Submit data to the server
 
     const url = 'https://api.nstack.in/v1/todos';
     final uri = Uri.parse(url);
-    final response = await http.post(uri,
-        body: jsonEncode(body), headers: {'Content-Type': 'application/json'});
+    final isSuccess = await TodoService.addTodo(body);
 
-    if (response.statusCode == 201) {
+    if (isSuccess) {
       titleController.text = '';
       descriptionController.text = '';
       log('Creation Success');
-      showSuccessMessage('Creation Success');
+      showSuccessMessage(context, message: 'Creation Success');
     } else {
-      showErrorMessage('Creation Failure');
-      log(response.body);
+      showErrorMessage(context, message: 'Creation Failure');
+      
     }
     // Show success or fail msg based on status
   }
 
   //! UPDATE DATA
   Future<void> updateData() async {
-    // Get the data from form6455256c97c55f760dfea200
+   
 
     final todo = widget.todo;
     if (todo == null) {
@@ -125,60 +119,36 @@ class _AddToDoState extends State<AddToDo> {
 
     final id = todo['_id'];
 
-    final title = titleController.text;
-    final description = descriptionController.text;
-
-    final body = {
-      "title": title,
-      "description": description,
-      "is_completed": false
-    };
+    
 
     // Submit update data to the server
 
     final url = 'https://api.nstack.in/v1/todos/$id';
     final uri = Uri.parse(url);
-    final response = await http.put(
-      uri,
-      body: jsonEncode(body),
-      headers: {'Content-Type': 'application/json'},
-    );
+    final isSuccess = await TodoService.updateTodo(id, body);
 
     // Show success or fail msg based on status
-    if (response.statusCode == 200) {
+    if (isSuccess) {
       
-      showSuccessMessage('Upadation Success');
+      showSuccessMessage(context, message: 'Upadation Success');
     } else {
-      showErrorMessage('Updation Failure');
-      log(response.body);
+      showErrorMessage(context, message: 'Updation Failure');
+      
     }
   }
 
-  //SnacBar -> Success
-  void showSuccessMessage(String message) {
-    final snackBar = SnackBar(
-      content: Text(
-        message,
-        style: const TextStyle(
-            color: Colors.white, fontSize: 17, fontWeight: FontWeight.w500),
-      ),
-      duration: const Duration(seconds: 5),
-      backgroundColor: Colors.green,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+
+   // Get the data from FORM
+  Map get body {
+    final title = titleController.text;
+    final description = descriptionController.text;
+
+    return {
+      "title": title,
+      "description": description,
+      "is_completed": false
+    };
   }
 
-  //! SnacBar -> Failure
-  void showErrorMessage(String message) {
-    final snackBar = SnackBar(
-      content: Text(
-        message,
-        style: const TextStyle(
-            color: Colors.white, fontSize: 17, fontWeight: FontWeight.w500),
-      ),
-      duration: const Duration(seconds: 5),
-      backgroundColor: Colors.red,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
 }
